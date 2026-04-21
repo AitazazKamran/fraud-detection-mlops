@@ -183,7 +183,7 @@ jobs:
           touch data/.gitkeep models/.gitkeep
 
           cat > Dockerfile.training << 'EOF'
-          FROM python:3.10-slim
+          FROM python:3.11-slim
           WORKDIR /app
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt
@@ -200,7 +200,7 @@ jobs:
           touch models/.gitkeep
 
           cat > Dockerfile.inference << 'EOF'
-          FROM python:3.10-slim
+          FROM python:3.11-slim
           WORKDIR /app
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt flask
