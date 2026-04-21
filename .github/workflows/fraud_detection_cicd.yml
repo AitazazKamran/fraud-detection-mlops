@@ -177,35 +177,39 @@ jobs:
       - name: Build Training Pipeline Docker image
         run: |
           echo "Building training pipeline Docker image..."
+          # Create placeholder dirs so COPY doesn't fail in CI
+          # (real data lives locally, not in repo due to size)
+          mkdir -p data models
+          touch data/.gitkeep models/.gitkeep
+
           cat > Dockerfile.training << 'EOF'
           FROM python:3.10-slim
           WORKDIR /app
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt
           COPY pipeline/ ./pipeline/
-          COPY data/ ./data/
           CMD ["python", "pipeline/model_training.py"]
           EOF
           docker build -f Dockerfile.training -t ${{ env.DOCKER_IMAGE_NAME }}-training:${{ github.sha }} .
-          docker build -f Dockerfile.training -t ${{ env.DOCKER_IMAGE_NAME }}-training:latest .
-          echo "✅ Training image built: ${{ env.DOCKER_IMAGE_NAME }}-training:${{ github.sha }}"
+          echo "✅ Training image built"
 
       - name: Build Inference API Docker image
         run: |
           echo "Building inference API Docker image..."
+          mkdir -p models
+          touch models/.gitkeep
+
           cat > Dockerfile.inference << 'EOF'
           FROM python:3.10-slim
           WORKDIR /app
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt flask
-          COPY models/ ./models/
-          # inference_api.py will be created in Task 6
           EXPOSE 5000
-          CMD ["python", "-c", "print('Inference API placeholder — Task 6 will complete this')"]
+          CMD ["python", "-c", "print('Inference API — Task 6 will complete this')"]
           EOF
           docker build -f Dockerfile.inference -t ${{ env.DOCKER_IMAGE_NAME }}-inference:${{ github.sha }} .
-          echo "✅ Inference image built: ${{ env.DOCKER_IMAGE_NAME }}-inference:${{ github.sha }}"
-
+          echo "✅ Inference image built"
+          
       - name: Log build summary
         run: |
           echo "════════════════════════════════"
