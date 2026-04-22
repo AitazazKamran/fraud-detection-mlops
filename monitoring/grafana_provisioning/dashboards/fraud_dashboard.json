@@ -1,0 +1,435 @@
+{
+    "__inputs": [
+        {
+            "name": "DS_PROMETHEUS",
+            "label": "Prometheus",
+            "type": "datasource",
+            "pluginId": "prometheus"
+        }
+    ],
+    "__requires": [
+        {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "10.0.0"
+        }
+    ],
+    "title": "Fraud Detection MLOps — Full System Dashboard",
+    "uid": "fraud-detection-mlops",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+        {
+            "id": 1,
+            "type": "stat",
+            "title": "🔴 Fraud Recall (Live)",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "fraud_model_recall",
+                    "legendFormat": "Recall"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.75
+                            },
+                            {
+                                "color": "green",
+                                "value": 0.85
+                            }
+                        ]
+                    },
+                    "mappings": [],
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1
+                }
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "orientation": "auto",
+                "colorMode": "background"
+            }
+        },
+        {
+            "id": 2,
+            "type": "stat",
+            "title": "False Positive Rate",
+            "gridPos": {
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "fraud_false_positive_rate",
+                    "legendFormat": "FPR"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.15
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.25
+                            }
+                        ]
+                    },
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1
+                }
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "colorMode": "background"
+            }
+        },
+        {
+            "id": 3,
+            "type": "stat",
+            "title": "API Request Rate",
+            "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "rate(fraud_api_requests_total[1m])",
+                    "legendFormat": "req/s"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps"
+                }
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "colorMode": "background"
+            }
+        },
+        {
+            "id": 4,
+            "type": "stat",
+            "title": "p95 Latency",
+            "gridPos": {
+                "x": 18,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, rate(fraud_api_request_latency_seconds_bucket[5m]))",
+                    "legendFormat": "p95"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s",
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.5
+                            },
+                            {
+                                "color": "red",
+                                "value": 1.0
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "colorMode": "background"
+            }
+        },
+        {
+            "id": 5,
+            "type": "timeseries",
+            "title": "Model Performance Over Time (Recall + Precision)",
+            "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "fraud_model_recall",
+                    "legendFormat": "Recall"
+                },
+                {
+                    "expr": "fraud_model_precision",
+                    "legendFormat": "Precision"
+                },
+                {
+                    "expr": "fraud_false_positive_rate",
+                    "legendFormat": "False Positive Rate"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "green",
+                                "value": 0.75
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "id": 6,
+            "type": "timeseries",
+            "title": "API Latency Percentiles",
+            "gridPos": {
+                "x": 12,
+                "y": 4,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, rate(fraud_api_request_latency_seconds_bucket[5m]))",
+                    "legendFormat": "p50"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, rate(fraud_api_request_latency_seconds_bucket[5m]))",
+                    "legendFormat": "p95"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, rate(fraud_api_request_latency_seconds_bucket[5m]))",
+                    "legendFormat": "p99"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s"
+                }
+            },
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                }
+            }
+        },
+        {
+            "id": 7,
+            "type": "timeseries",
+            "title": "Feature Drift Scores (>0.7 = Alert)",
+            "gridPos": {
+                "x": 0,
+                "y": 12,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "fraud_feature_drift_score{feature_name=\"TransactionAmt\"}",
+                    "legendFormat": "TransactionAmt"
+                },
+                {
+                    "expr": "fraud_feature_drift_score{feature_name=\"card1\"}",
+                    "legendFormat": "card1"
+                },
+                {
+                    "expr": "fraud_feature_drift_score{feature_name=\"card2\"}",
+                    "legendFormat": "card2"
+                },
+                {
+                    "expr": "fraud_feature_drift_score{feature_name=\"addr1\"}",
+                    "legendFormat": "addr1"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "min": 0,
+                    "max": 1,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.5
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.7
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 8,
+            "type": "timeseries",
+            "title": "Fraud Predictions — Fraud vs Legitimate",
+            "gridPos": {
+                "x": 12,
+                "y": 12,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "rate(fraud_predictions_total{predicted_class=\"fraud\"}[1m])",
+                    "legendFormat": "Fraud Predictions/s"
+                },
+                {
+                    "expr": "rate(fraud_predictions_total{predicted_class=\"legitimate\"}[1m])",
+                    "legendFormat": "Legitimate/s"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps"
+                }
+            }
+        },
+        {
+            "id": 9,
+            "type": "timeseries",
+            "title": "Missing Value Rate in Incoming Data",
+            "gridPos": {
+                "x": 0,
+                "y": 20,
+                "w": 12,
+                "h": 6
+            },
+            "targets": [
+                {
+                    "expr": "fraud_input_missing_value_rate",
+                    "legendFormat": "Missing Value Rate"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1,
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.1
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.2
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 10,
+            "type": "timeseries",
+            "title": "API Error Rate",
+            "gridPos": {
+                "x": 12,
+                "y": 20,
+                "w": 12,
+                "h": 6
+            },
+            "targets": [
+                {
+                    "expr": "rate(fraud_api_errors_total[5m])",
+                    "legendFormat": "Errors/s by type {{error_type}}"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps"
+                }
+            }
+        }
+    ],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-30m",
+        "to": "now"
+    },
+    "timepicker": {}
+}

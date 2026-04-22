@@ -1,0 +1,89 @@
+﻿groups:
+  - name: model_performance_alerts
+    interval: 30s
+    rules:
+      - alert: FraudRecallDrop
+        expr: fraud_model_recall < 0.75
+        for: 2m
+        labels:
+          severity: critical
+          team: mlops
+        annotations:
+          summary: "Fraud recall dropped below threshold"
+          description: "Recall is below 0.75 - model is missing too many fraud cases. Trigger retraining."
+
+      - alert: FraudPrecisionDrop
+        expr: fraud_model_precision < 0.10
+        for: 5m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "Fraud precision critically low"
+          description: "Precision dropped below 0.10 - too many false alarms."
+
+      - alert: HighFalsePositiveRate
+        expr: fraud_false_positive_rate > 0.25
+        for: 5m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "False positive rate exceeds 25 percent"
+          description: "Too many legitimate transactions are being flagged as fraud."
+
+  - name: data_drift_alerts
+    interval: 30s
+    rules:
+      - alert: FeatureDriftDetected
+        expr: fraud_feature_drift_score > 0.7
+        for: 1m
+        labels:
+          severity: critical
+          team: mlops
+        annotations:
+          summary: "Significant data drift detected"
+          description: "Drift score exceeded 0.7 threshold. Investigate data pipeline."
+
+      - alert: HighMissingValueRate
+        expr: fraud_input_missing_value_rate > 0.20
+        for: 2m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "High missing value rate in incoming data"
+          description: "More than 20 percent of input features are missing."
+
+  - name: system_health_alerts
+    interval: 15s
+    rules:
+      - alert: APILatencySpike
+        expr: histogram_quantile(0.95, rate(fraud_api_request_latency_seconds_bucket[5m])) > 1.0
+        for: 2m
+        labels:
+          severity: critical
+          team: mlops
+        annotations:
+          summary: "API p95 latency exceeds 1 second"
+          description: "Response time SLA breach risk."
+
+      - alert: HighAPIErrorRate
+        expr: rate(fraud_api_errors_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "API error rate exceeds threshold"
+          description: "Error rate is too high."
+
+      - alert: APIDown
+        expr: up{job="fraud_detection_api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: mlops
+        annotations:
+          summary: "Fraud Detection API is down"
+          description: "The inference API has been unreachable for over 1 minute."
